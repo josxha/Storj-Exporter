@@ -4,11 +4,16 @@ import requests
 import json
 from prometheus_client import start_http_server
 from prometheus_client.core import GaugeMetricFamily, InfoMetricFamily, REGISTRY
+from argparse import ArgumentParser
 
 class StorjCollector(object):
-  def __init__(self):
-    self.storj_host_address = os.environ.get('STORJ_HOST_ADDRESS', '127.0.0.1')
-    self.storj_api_port = os.environ.get('STORJ_API_PORT', '14002')
+  def __init__(self, dashboard_host, dashboard_port):
+    self.storj_host_address = dashboard_host
+    self.storj_api_port= dashboard_port
+    if self.storj_host_address is None:
+      self.storj_host_address = os.environ.get('STORJ_HOST_ADDRESS', '127.0.0.1')
+    if self.storj_api_port is None:
+      self.storj_api_port = os.environ.get('STORJ_API_PORT', '14002')
 
   def call_api(self,path):
     response=requests.get(url = "http://" + self.storj_host_address + ":" + self.storj_api_port + "/api/" + path)
@@ -106,7 +111,14 @@ class StorjCollector(object):
     yield storj_sat_day_storage
 
 if __name__ == "__main__":
-  storj_exporter_port = os.environ.get('STORJ_EXPORTER_PORT', '9651')
-  REGISTRY.register(StorjCollector())
+  parser = ArgumentParser()
+  parser.add_argument("-ep", "--exporter-port", type=int, dest="storj_exporter_port", help="the port the exported data should be accessible (default: 9651)", default=None)
+  parser.add_argument("-sp", "--storj-dashboard-port", type=int, dest="storj_dashboard_port", help="the port the dashboard of your storage node is accessible(default: 14002)", default=None)
+  parser.add_argument("-sh", "--storj-dashboard-host", type=str, dest="storj_dashboard_host", help="the host the dashboard of your storage node is accessible (default: 127.0.0.1)", default=None)
+  args = parser.parse_args()
+  storj_exporter_port = args.storj_exporter_port
+  if storj_exporter_port is None:
+    storj_exporter_port = os.environ.get('STORJ_EXPORTER_PORT', '9651')
+  REGISTRY.register(StorjCollector(args.storj_dashboard_host, args.storj_dashboard_port))
   start_http_server(int(storj_exporter_port))
   while True: time.sleep(1)
