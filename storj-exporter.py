@@ -16,7 +16,7 @@ class StorjCollector(object):
       self.storj_api_port = os.environ.get('STORJ_API_PORT', '14002')
 
   def call_api(self,path):
-    response=requests.get(url = "http://" + self.storj_host_address + ":" + self.storj_api_port + "/api/" + path)
+    response=requests.get(url = "http://" + self.storj_host_address + ":" + str(self.storj_api_port) + "/api/" + path)
     return response.json()
    
   def get_data(self):
