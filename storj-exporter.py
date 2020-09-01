@@ -7,16 +7,24 @@ from prometheus_client.core import GaugeMetricFamily, InfoMetricFamily, REGISTRY
 from argparse import ArgumentParser
 
 class StorjCollector(object):
-  def __init__(self, dashboard_host, dashboard_port):
-    self.storj_host_address = dashboard_host
+  def __init__(self, dashboard_host, dashboard_port, dashboard_user, dashboard_pass):
+    if dashboard_host.startswith("http"):
+      self.storj_host_address = dashboard_host
+    else:
+      self.storj_host_address = "http://" + dashboard_host
     self.storj_api_port= dashboard_port
+    self.storj_user = dashboard_user
+    self.storj_pass = dashboard_pass
     if self.storj_host_address is None:
       self.storj_host_address = os.environ.get('STORJ_HOST_ADDRESS', '127.0.0.1')
     if self.storj_api_port is None:
       self.storj_api_port = os.environ.get('STORJ_API_PORT', '14002')
 
   def call_api(self,path):
-    response=requests.get(url = "http://" + self.storj_host_address + ":" + str(self.storj_api_port) + "/api/" + path)
+    auth = None
+    if self.storj_user is not None and self.storj_pass is not None:
+      auth = (self.storj_user, self.storj_pass)
+    response=requests.get(url = self.storj_host_address + ":" + str(self.storj_api_port) + "/api/" + path, auth=auth)
     return response.json()
    
   def get_data(self):
@@ -115,10 +123,30 @@ if __name__ == "__main__":
   parser.add_argument("-ep", "--exporter-port", type=int, dest="storj_exporter_port", help="the port the exported data should be accessible (default: 9651)", default=None)
   parser.add_argument("-sp", "--storj-dashboard-port", type=int, dest="storj_dashboard_port", help="the port the dashboard of your storage node is accessible(default: 14002)", default=None)
   parser.add_argument("-sh", "--storj-dashboard-host", type=str, dest="storj_dashboard_host", help="the host the dashboard of your storage node is accessible (default: 127.0.0.1)", default=None)
+  parser.add_argument("-suser", "--storj-dashboard-username", type=str, dest="storj_dashboard_username", help="username of basic http authorization", default=None)
+  parser.add_argument("-spass", "--storj-dashboard-password", type=str, dest="storj_dashboard_password", help="password of basic http authorization", default=None)
   args = parser.parse_args()
+
   storj_exporter_port = args.storj_exporter_port
   if storj_exporter_port is None:
     storj_exporter_port = os.environ.get('STORJ_EXPORTER_PORT', '9651')
-  REGISTRY.register(StorjCollector(args.storj_dashboard_host, args.storj_dashboard_port))
+
+  storj_dashboard_user = args.storj_dashboard_user
+  if storj_dashboard_user is None:
+    storj_dashboard_user = os.environ.get('STORJ_DASHBOARD_USER', None)
+
+  storj_dashboard_pwd = args.storj_dashboard_pwd
+  if storj_dashboard_pwd is None:
+    storj_dashboard_pwd = os.environ.get('STORJ_DASHBOARD_PWD', None)
+
+  storj_dashboard_host = args.storj_dashboard_host
+  if storj_dashboard_host is None:
+    storj_dashboard_host = os.environ.get('STORJ_EXPORTER_HOST', None)
+
+  storj_dashboard_port = args.storj_dashboard_port
+  if storj_dashboard_port is None:
+    storj_dashboard_port = os.environ.get('STORJ_EXPORTER_PORT', None)
+
+  REGISTRY.register(StorjCollector(storj_dashboard_host, storj_dashboard_port, storj_dashboard_user, storj_dashboard_pwd))
   start_http_server(int(storj_exporter_port))
   while True: time.sleep(1)
