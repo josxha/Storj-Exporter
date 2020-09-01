@@ -123,8 +123,8 @@ if __name__ == "__main__":
   parser.add_argument("-ep", "--exporter-port", type=int, dest="storj_exporter_port", help="the port the exported data should be accessible (default: 9651)", default=None)
   parser.add_argument("-sp", "--storj-dashboard-port", type=int, dest="storj_dashboard_port", help="the port the dashboard of your storage node is accessible(default: 14002)", default=None)
   parser.add_argument("-sh", "--storj-dashboard-host", type=str, dest="storj_dashboard_host", help="the host the dashboard of your storage node is accessible (default: 127.0.0.1)", default=None)
-  parser.add_argument("-suser", "--storj-dashboard-username", type=str, dest="storj_dashboard_username", help="username of basic http authorization", default=None)
-  parser.add_argument("-spass", "--storj-dashboard-password", type=str, dest="storj_dashboard_password", help="password of basic http authorization", default=None)
+  parser.add_argument("-suser", "--storj-dashboard-username", type=str, dest="storj_dashboard_user", help="username of basic http authorization", default=None)
+  parser.add_argument("-spwd", "--storj-dashboard-password", type=str, dest="storj_dashboard_pwd", help="password of basic http authorization", default=None)
   args = parser.parse_args()
 
   storj_exporter_port = args.storj_exporter_port
