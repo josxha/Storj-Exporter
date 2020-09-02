@@ -141,7 +141,7 @@ if __name__ == "__main__":
 
   storj_dashboard_host = args.storj_dashboard_host
   if storj_dashboard_host is None:
-    storj_dashboard_host = os.environ.get('STORJ_EXPORTER_HOST', None)
+    storj_dashboard_host = os.environ.get('STORJ_EXPORTER_HOST', '127.0.0.1')
 
   storj_dashboard_port = args.storj_dashboard_port
   if storj_dashboard_port is None:
